@@ -79,7 +79,7 @@ public class InventoryService {
             // MusicPlaysRestService) for the latest charts per genre.
             productPurchaseCounts.groupBy((product, purchase_count) ->
 								KeyValue.pair(product.getBrand().toLowerCase(),
-										new PurchaseCount(product.getProductId(), purchase_count)),
+										new PurchaseCount(product.getId(), purchase_count)),
 						Grouped.with(Serdes.String(), productPurchaseCountSerde))
 						// aggregate into a TopFiveSongs instance that will keep track
 						// of the current top five for each genre. The data will be available in the
@@ -103,7 +103,7 @@ public class InventoryService {
 //				// MusicPlaysRestService) for the latest charts per genre.
             productPurchaseCounts.groupBy((product, purchase_count) ->
 								KeyValue.pair(TOP_FIVE_KEY,
-										new PurchaseCount(product.getProductId(), purchase_count)),
+										new PurchaseCount(product.getId(), purchase_count)),
 						Grouped.with(Serdes.String(), productPurchaseCountSerde))
 						.aggregate(TopFiveProducts::new,
 								(aggKey, value, aggregate) -> {

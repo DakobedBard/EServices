@@ -139,7 +139,7 @@ public class PurchaseEventProducer {
         products.forEach(product -> {
 			System.out.println("Writing product information for '" + product.getName() + "' to input topic " +
 					InventoryService.PRODUCT_FEED);
-			template1.sendDefault(product.getProductId(), product);
+			template1.sendDefault(product.getId(), product);
 		});
 
 		DefaultKafkaProducerFactory<String, PurchaseEvent> pf = new DefaultKafkaProducerFactory<>(props);
@@ -154,7 +154,7 @@ public class PurchaseEventProducer {
 			final Product product = products.get(random.nextInt(products.size()));
 			System.out.println("Writing purchase event for product " + product.getName() + " to input topic " +
 					InventoryService.PURCHASE_EVENTS);
-			template.sendDefault("uk", new PurchaseEvent(1L, product.getProductId(), purchase_quantity));
+			template.sendDefault("uk", new PurchaseEvent(1L, product.getId(), purchase_quantity));
 
 			Thread.sleep(100L);
 		}
