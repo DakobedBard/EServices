@@ -25,45 +25,74 @@ import java.util.function.Function;
 @Service
 public class BranchingService {
 
-    @EnableBinding(KStreamProcessorWithBranches.class)
+    @EnableBinding({WordBranches.class, ProductBranches.class})
     @EnableAutoConfiguration
     public static class WordCountProcessorApplication {
 
-
         @StreamListener("words")
         @SendTo({"english", "french", "spanish"})
-
-        public KStream<?, WordCount>[]process(KStream < Object, String>input) {
-
-            Predicate<Object, WordCount> isEnglish = (k, v) -> v.word.equals("english");
-            Predicate<Object, WordCount> isFrench = (k, v) -> v.word.equals("french");
-            Predicate<Object, WordCount> isSpanish = (k, v) -> v.word.equals("spanish");
-
-            return input
-                    .flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
-                    .groupBy((key, value) -> value)
-                    .windowedBy(TimeWindows.of(Duration.ofSeconds(6)))
-                    .count(Materialized.as("WordCounts-1"))
-                    .toStream()
-                    .map((key, value) -> new KeyValue<>(null, new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))))
-                    .branch(isEnglish, isFrench, isSpanish);
+        @SuppressWarnings("unchecked")
+        public KStream<String, String>[]branch(KStream < String, String>input) {
+            Predicate<String, String> isEnglish = (k, v) -> v.equals("english");
+            Predicate<String, String> isFrench = (k, v) -> v.equals("french");
+            Predicate<String, String> isSpanish = (k, v) -> v.equals("spanish");
+            return input.branch(isEnglish, isFrench, isSpanish);
         }
+
+
+        @StreamListener("product-feed")
+        @SendTo({"nike-products", "addidas-products", "ua-products"})
+        @SuppressWarnings("unchecked")
+        public KStream<String, String>[]product_branches(KStream < String, String>input) {
+            Predicate<String, String> isEnglish = (k, v) -> v.equals("english");
+            Predicate<String, String> isFrench = (k, v) -> v.equals("french");
+            Predicate<String, String> isSpanish = (k, v) -> v.equals("spanish");
+            return input.branch(isEnglish, isFrench, isSpanish);
+        }
+
+
+//        @StreamListener("words")
+//        @SendTo({"english", "french", "spanish"})
+//
+//        public KStream<?, WordCount>[]process(KStream < Object, String>input) {
+//
+//            Predicate<Object, WordCount> isEnglish = (k, v) -> v.word.equals("english");
+//            Predicate<Object, WordCount> isFrench = (k, v) -> v.word.equals("french");
+//            Predicate<Object, WordCount> isSpanish = (k, v) -> v.word.equals("spanish");
+//
+//            return input
+//                    .flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
+//                    .groupBy((key, value) -> value)
+//                    .windowedBy(TimeWindows.of(Duration.ofSeconds(6)))
+//                    .count(Materialized.as("WordCounts-1"))
+//                    .toStream()
+//                    .map((key, value) -> new KeyValue<>(null, new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))))
+//                    .branch(isEnglish, isFrench, isSpanish);
+//        }
     }
 
-        interface KStreamProcessorWithBranches {
+    interface WordBranches {
+        @Input("words")
+        KStream<?, ?> input();
+        @Output("english")
+        KStream<?, ?> output1();
+        @Output("french")
+        KStream<?, ?> output2();
+        @Output("spanish")
+        KStream<?, ?> output3();
+    }
 
-            @Input("words")
-            KStream<?, ?> input();
+    interface ProductBranches {
+        @Input("product-feed")
+        KStream<?, ?> input();
+        @Output("nike-products")
+        KStream<?, ?> output1();
+        @Output("addidas-products")
+        KStream<?, ?> output2();
+        @Output("ua-products")
+        KStream<?, ?> output3();
+    }
 
-            @Output("english")
-            KStream<?, ?> output1();
-
-            @Output("french")
-            KStream<?, ?> output2();
-
-            @Output("spanish")
-            KStream<?, ?> output3();
-        }
 
     static class WordCount {
         private String word;
@@ -102,18 +131,4 @@ public class BranchingService {
         }
     }
 
-    public interface Binding{
-
-        @Input
-        SubscribableChannel words();
-
-        @Output
-        MessageChannel english_words();
-
-        @Output
-        MessageChannel french_words();
-        @Output
-        MessageChannel c();
-
-    }
 }
