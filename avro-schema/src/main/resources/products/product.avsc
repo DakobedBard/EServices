@@ -5,6 +5,7 @@
      {"name": "id",     "type": "string"},
      {"name": "brand", "type": "string"},
      {"name": "name",   "type": "string"},
-     {"name": "price",  "type": "long"}
+     {"name": "price",  "type": "long"},
+     {"name": "quantity",  "type": "long"}
  ]
 }

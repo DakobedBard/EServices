@@ -5,9 +5,7 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Joined;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.*;
 import org.mddarr.orders.event.dto.Order;
 import org.mddarr.products.Product;
 import org.mddarr.products.PurchaseCount;
@@ -16,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -24,47 +23,29 @@ import java.util.function.Function;
 public class OrdersProcessingService {
     public static class OrdersProcessor {
         @Bean
-        public Function<KStream<String, Order>, KStream<String, Order>> ordersprocess() {
-            return orders -> orders;
+        public Function<KStream<String, Order>,  KStream<String, Order>> ordersprocess() {
+
+            Predicate<String, Product> isEnglish = (k, v) -> {
+                return v.getBrand().equals("Nike");
+            };
+            Predicate<String, Product> isFrench = (k, v) -> v.getBrand().equals("Addidas");
+            Predicate<String, Product> isSpanish = (k, v) -> v.getBrand().equals("Under Armour");
+
+
+            return (orderStream) ->{
+
+
+
+                orderStream.foreach(new ForeachAction() {
+                    @Override
+                    public void apply(Object key, Object value) {
+                        System.out.print("THe key value is .. ");
+                        System.out.println(key + ": " + value);
+                    }
+                });
+                return orderStream;
+            };
+
         }
     }
 }
-//        @Bean
-//        public BiFunction<KStream<String, Order>, KTable<String, Product>, KStream<String, Order>> ordersprocess() {
-//            return (purchaseStream, productTable) -> {
-//                // create and configure the SpecificAvroSerdes required in this example
-//                final Map<String, String> serdeConfig = Collections.singletonMap(
-//                        AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
-//
-//                final SpecificAvroSerde<Order> orderEventSerde = new SpecificAvroSerde<>();
-//                orderEventSerde.configure(serdeConfig, false);
-//
-//                //  Key value Serde for Products
-//                final SpecificAvroSerde<Product> keyProductSerde = new SpecificAvroSerde<>();
-//                keyProductSerde.configure(serdeConfig, true);
-//
-//                final SpecificAvroSerde<Product> valueProductSerde = new SpecificAvroSerde<>();
-//                valueProductSerde.configure(serdeConfig, false);
-//
-//
-//
-//                final SpecificAvroSerde<Order> orderSerde = new SpecificAvroSerde<>();
-//                orderSerde.configure(serdeConfig, false);
-//
-//                final KStream<String, PurchaseEvent> purchasesByProductId =
-//                        purchaseStream.map((key, value) -> KeyValue.pair(value.getId(), value));
-//
-//                // join the purchases with product as we will use it later for charting
-//                final KStream<String, Product> productPurchases = purchasesByProductId
-//                        .leftJoin(productTable, (value1, product) -> product,
-//                                Joined.with(Serdes.String(), purchaseEventSerde, valueProductSerde));
-//                // create a state store to track product purchase counts
-//                final KStream<String, Long> productPurchaseCounts = purchasesByProductId.groupBy((k,v) -> k).count().toStream();
-//
-//                return productPurchaseCounts;
-//            };
-//
-//        }
-//    }
-//
-//}
