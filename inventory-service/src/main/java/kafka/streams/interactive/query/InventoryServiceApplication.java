@@ -34,7 +34,6 @@ public class InventoryServiceApplication {
 	public static class KStreamMusicSampleApplication {
 
 	}
-
 }
 
 

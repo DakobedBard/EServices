@@ -1,11 +1,10 @@
 package kafka.streams.interactive.query.controllers;
 
-import kafka.streams.interactive.query.ProductBean;
-import kafka.streams.interactive.query.ProductPurchaseCountBean;
+import kafka.streams.interactive.query.bean.ProductBean;
+import kafka.streams.interactive.query.bean.ProductPurchaseCountBean;
 import kafka.streams.interactive.query.services.InventoryService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;

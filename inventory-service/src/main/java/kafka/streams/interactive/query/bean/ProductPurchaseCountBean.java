@@ -1,4 +1,4 @@
-package kafka.streams.interactive.query;
+package kafka.streams.interactive.query.bean;
 
 import java.util.Objects;
 

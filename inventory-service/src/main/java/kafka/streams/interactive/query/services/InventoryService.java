@@ -32,6 +32,10 @@ public class InventoryService {
 
     static final String TOP_FIVE_SONGS_BY_GENRE_STORE = "top-five-products-by-brand";
 
+
+
+
+
     //
     @Bean
     public BiConsumer<KStream<String, PurchaseEvent>, KTable<String, Product>> process() {
