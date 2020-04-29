@@ -5,15 +5,14 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.TimeWindows;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mddarr.products.Product;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.cloud.stream.annotation.StreamListener;
-import org.springframework.context.annotation.Bean;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.SubscribableChannel;
+
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Service;
 
@@ -29,46 +28,46 @@ public class BranchingService {
     @EnableAutoConfiguration
     public static class WordCountProcessorApplication {
 
-        @StreamListener("words")
-        @SendTo({"english", "french", "spanish"})
-        @SuppressWarnings("unchecked")
-        public KStream<String, String>[]branch(KStream < String, String>input) {
-            Predicate<String, String> isEnglish = (k, v) -> v.equals("english");
-            Predicate<String, String> isFrench = (k, v) -> v.equals("french");
-            Predicate<String, String> isSpanish = (k, v) -> v.equals("spanish");
-            return input.branch(isEnglish, isFrench, isSpanish);
-        }
+//        @StreamListener("words")
+//        @SendTo({"english", "french", "spanish"})
+//        @SuppressWarnings("unchecked")
+//        public KStream<String, String>[]branch(KStream < String, String>input) {
+//            Predicate<String, String> isEnglish = (k, v) -> v.equals("english");
+//            Predicate<String, String> isFrench = (k, v) -> v.equals("french");
+//            Predicate<String, String> isSpanish = (k, v) -> v.equals("spanish");
+//            return input.branch(isEnglish, isFrench, isSpanish);
+//        }
 
 
         @StreamListener("product-feed")
         @SendTo({"nike-products", "addidas-products", "ua-products"})
         @SuppressWarnings("unchecked")
-        public KStream<String, String>[]product_branches(KStream < String, String>input) {
-            Predicate<String, String> isEnglish = (k, v) -> v.equals("english");
-            Predicate<String, String> isFrench = (k, v) -> v.equals("french");
-            Predicate<String, String> isSpanish = (k, v) -> v.equals("spanish");
+        public KStream<String, Product>[]product_branches(KStream < String, Product> input) {
+            Predicate<String, Product> isEnglish = (k, v) -> v.getBrand().equals("Nike");
+            Predicate<String, Product> isFrench = (k, v) -> v.getBrand().equals("Addidas");
+            Predicate<String, Product> isSpanish = (k, v) -> v.getBrand().equals("Under Armour");
             return input.branch(isEnglish, isFrench, isSpanish);
         }
 
 
-//        @StreamListener("words")
-//        @SendTo({"english", "french", "spanish"})
-//
-//        public KStream<?, WordCount>[]process(KStream < Object, String>input) {
-//
-//            Predicate<Object, WordCount> isEnglish = (k, v) -> v.word.equals("english");
-//            Predicate<Object, WordCount> isFrench = (k, v) -> v.word.equals("french");
-//            Predicate<Object, WordCount> isSpanish = (k, v) -> v.word.equals("spanish");
-//
-//            return input
-//                    .flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
-//                    .groupBy((key, value) -> value)
-//                    .windowedBy(TimeWindows.of(Duration.ofSeconds(6)))
-//                    .count(Materialized.as("WordCounts-1"))
-//                    .toStream()
-//                    .map((key, value) -> new KeyValue<>(null, new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))))
-//                    .branch(isEnglish, isFrench, isSpanish);
-//        }
+        @StreamListener("words")
+        @SendTo({"english", "french", "spanish"})
+        @SuppressWarnings("unchecked")
+        public KStream<?, WordCount>[]process(KStream < Object, String>input) {
+
+            Predicate<Object, WordCount> isEnglish = (k, v) -> v.word.equals("english");
+            Predicate<Object, WordCount> isFrench = (k, v) -> v.word.equals("french");
+            Predicate<Object, WordCount> isSpanish = (k, v) -> v.word.equals("spanish");
+
+            return input
+                    .flatMapValues(value -> Arrays.asList(value.toLowerCase().split("\\W+")))
+                    .groupBy((key, value) -> value)
+                    .windowedBy(TimeWindows.of(Duration.ofSeconds(6)))
+                    .count(Materialized.as("WordCounts-1"))
+                    .toStream()
+                    .map((key, value) -> new KeyValue<>(null, new WordCount(key.key(), value, new Date(key.window().start()), new Date(key.window().end()))))
+                    .branch(isEnglish, isFrench, isSpanish);
+        }
     }
 
     interface WordBranches {
