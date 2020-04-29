@@ -29,18 +29,14 @@ public class InventoryService {
     public static final String TOP_FIVE_PRODUCTS_STORE = "top-five-products";
     public static final String ALL_PRODUCTS = "all-products";
     private static final String PRODUCT_PLAY_COUNT_STORE = "product-play-count";
-
-    static final String TOP_FIVE_SONGS_BY_GENRE_STORE = "top-five-products-by-brand";
-
-
-
+    static final String TOP_FIVE_PRODUCTS_BY_BRAND_STORE = "top-five-products-by-brand";
 
 
     //
     @Bean
     public BiConsumer<KStream<String, PurchaseEvent>, KTable<String, Product>> process() {
 
-        return (s, t) -> {
+        return (purchaseStream, productTable) -> {
             // create and configure the SpecificAvroSerdes required in this example
             final Map<String, String> serdeConfig = Collections.singletonMap(
                     AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
@@ -57,20 +53,16 @@ public class InventoryService {
             final SpecificAvroSerde<PurchaseCount> productPurchaseCountSerde = new SpecificAvroSerde<>();
             productPurchaseCountSerde.configure(serdeConfig, false);
 
-            // Accept play events that have a duration >= the minimum
             final KStream<String, PurchaseEvent> purchasesByProductId =
-                    s.map((key, value) -> KeyValue.pair(value.getProductId(), value));
-//								filter((region, event) -> event.getDuration() >= MIN_CHARTABLE_DURATION)
-//								// repartition based on song id
-//								.map((key, value) -> KeyValue.pair(value.getSongId(), value));
+                    purchaseStream.map((key, value) -> KeyValue.pair(value.getProductId(), value));
 
-            // join the plays with song as we will use it later for charting
-            final KStream<String, Product> productPurchases = purchasesByProductId.leftJoin(t,
-                    (value1, song) -> song,
+            // join the purchases with product as we will use it later for charting
+            final KStream<String, Product> productPurchases = purchasesByProductId
+                    .leftJoin(productTable, (value1, product) -> product,
                     Joined.with(Serdes.String(), purchaseEventSerde, valueProductSerde));
 
-            // create a state store to track song play counts
-            final KTable<Product, Long> productPurchaseCounts = productPurchases.groupBy((songId, song) -> song,
+            // create a state store to track product purchase counts
+            final KTable<Product, Long> productPurchaseCounts = productPurchases.groupBy((productId, product) -> product,
                     Grouped.with(keyProductSerde, valueProductSerde))
                     .count(Materialized.<Product, Long, KeyValueStore<Bytes, byte[]>>as(PRODUCT_PLAY_COUNT_STORE)
                             .withKeySerde(valueProductSerde)
@@ -78,8 +70,8 @@ public class InventoryService {
 
             final TopFiveSerde topFiveSerde = new TopFiveSerde();
 
-            // Compute the top five charts for each genre. The results of this computation will continuously update the state
-            // store "top-five-songs-by-genre", and this state store can then be queried interactively via a REST API (cf.
+            // Compute the top five charts for each brand. The results of this computation will continuously update the state
+            // store "top-five-products-by-genre", and this state store can then be queried interactively via a REST API (cf.
             // MusicPlaysRestService) for the latest charts per genre.
             productPurchaseCounts.groupBy((product, purchase_count) ->
 								KeyValue.pair(product.getBrand().toLowerCase(),
@@ -97,7 +89,7 @@ public class InventoryService {
 									aggregate.remove(value);
 									return aggregate;
 								},
-								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_SONGS_BY_GENRE_STORE)
+								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_PRODUCTS_BY_BRAND_STORE)
 										.withKeySerde(Serdes.String())
 										.withValueSerde(topFiveSerde)
                         );
@@ -159,7 +151,7 @@ public class InventoryService {
         public Iterator<PurchaseCount> iterator() {
             return topFive.iterator();
         }
-//	}
+
     }
 
     private static class TopFiveSerde implements Serde<TopFiveProducts> {

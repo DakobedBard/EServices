@@ -1,5 +1,19 @@
 server:
   port: 8006
+spring.cloud.stream.function.definition: process;purchasesprocess;
+
+spring.cloud.stream.bindings.purchasesprocess-in-0:
+  destination: purchase-events
+spring.cloud.stream.bindings.purchasesprocess-in-1:
+  destination: product-feed
+spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-0:
+  consumer:
+    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-1:
+  consumer:
+    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+    materializedAs: all-purchases
+
 
 
 
