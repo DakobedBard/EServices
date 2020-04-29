@@ -1,6 +1,6 @@
 server:
   port: 8006
-spring.cloud.stream.function.definition: process;purchasesprocess;
+spring.cloud.stream.function.definition: process;purchasesprocess;ordersprocess;
 
 
 spring.cloud.stream.bindings.ordersprocess-in-0:
