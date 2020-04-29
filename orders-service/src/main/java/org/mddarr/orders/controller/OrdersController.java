@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/orders")
 public class OrdersController {
-    private static final Logger log = LoggerFactory.getLogger(UserResource.class);
+    private static final Logger log = LoggerFactory.getLogger(OrdersController.class);
 
     private final OrderService orderService;
 

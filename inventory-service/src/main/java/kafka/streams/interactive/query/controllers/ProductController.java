@@ -5,7 +5,6 @@ import kafka.streams.interactive.query.bean.ProductPurchaseCountBean;
 import kafka.streams.interactive.query.services.InventoryService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
@@ -21,31 +20,17 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RestController
-public class InventoryController {
-
+public class ProductController {
 
     @Autowired
     private InteractiveQueryService interactiveQueryService;
 
     private final Log logger = LogFactory.getLog(getClass());
 
-    @RequestMapping("/product/idx")
-    public ProductBean product(@RequestParam(value="id") String id) {
-        final ReadOnlyKeyValueStore<String, Product> productStore =
-                interactiveQueryService.getQueryableStore(InventoryService.ALL_PRODUCTS, QueryableStoreTypes.<String, Product>keyValueStore());
-
-        final Product product = productStore.get(id);
-        if (product == null) {
-            throw new IllegalArgumentException("hi");
-        }
-        return new ProductBean(product.getBrand(), product.getName()) ;
-    }
-
-    @RequestMapping("/product/top-five")
+    @RequestMapping("/product/topsellers")
     @SuppressWarnings("unchecked")
-    public List<ProductPurchaseCountBean> topFive(@RequestParam(value="genre") String genre) {
+    public List<ProductPurchaseCountBean> topFive(@RequestParam(value="brand") String brand) {
 
         HostInfo hostInfo = interactiveQueryService.getHostInfo(InventoryService.TOP_FIVE_PRODUCTS_STORE,
                 InventoryService.TOP_FIVE_KEY, new StringSerializer());
@@ -99,4 +84,5 @@ public class InventoryController {
         });
         return results;
     }
+
 }

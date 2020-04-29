@@ -1,6 +1,5 @@
 package org.mddarr.orders.entity;
 
-import org.graalvm.compiler.core.common.type.ArithmeticOpTable;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
