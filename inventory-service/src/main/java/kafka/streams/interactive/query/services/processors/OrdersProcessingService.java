@@ -1,4 +1,4 @@
-package kafka.streams.interactive.query.services;
+package kafka.streams.interactive.query.services.processors;
 
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -23,23 +24,25 @@ import java.util.function.Function;
 public class OrdersProcessingService {
     public static class OrdersProcessor {
         @Bean
-        public Function<KStream<String, Order>,  KStream<String, Order>> ordersprocess() {
+        public BiConsumer<KStream<String, Order>, KTable<String, Product>> ordersprocess() {
 
-            Predicate<String, Product> isEnglish = (k, v) -> {
-                return v.getBrand().equals("Nike");
-            };
-            Predicate<String, Product> isFrench = (k, v) -> v.getBrand().equals("Addidas");
-            Predicate<String, Product> isSpanish = (k, v) -> v.getBrand().equals("Under Armour");
-
-            return (orderStream) ->{
+            return (orderStream, productTable) ->{
                 orderStream.foreach(new ForeachAction() {
                     @Override
                     public void apply(Object key, Object value) {
-                        System.out.print("THe key value is .. ");
+                        System.out.print("THe key value of the orders stream is .. ");
                         System.out.println(key + ": " + value);
                     }
                 });
-                return orderStream;
+                productTable.toStream().foreach(new ForeachAction() {
+                    @Override
+                    public void apply(Object key, Object value) {
+                        System.out.print("THe key value of othe product is .. ");
+                        System.out.println(key + ": " + value);
+                    }
+                });;
+
+
             };
         }
     }
