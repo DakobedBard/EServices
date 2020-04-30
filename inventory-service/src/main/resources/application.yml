@@ -40,7 +40,6 @@ spring.cloud.stream.kafka.streams.bindings.process-in-1:
     materializedAs: all-products
 
 
-
 spring.cloud.stream.kafka.streams.binder:
   brokers: localhost:9092
   configuration:
@@ -50,6 +49,12 @@ spring.cloud.stream.kafka.streams.binder.autoAddPartitions: true
 spring.cloud.stream.kafka.streams.binder.minPartitionCount: 4
 spring.cloud.stream.kafka.streams.binder.configuration.application.server: localhost:8080
 spring:
+  kafka:
+    properties:
+      schema.registry.url: http://localhost:8081
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
   jpa:
     properties:
       hibernate:
