@@ -28,9 +28,9 @@ public class OrdersController {
 
     @PostMapping("/post/")
     public String postOrder(@RequestParam(value="products") List<String> products, @RequestParam(value="quantities") List<Long> quantities,
-                          @RequestParam(value="cid")  String cid, @RequestParam(value="price") Double price)
+                          @RequestParam(value="cid")  String cid, @RequestParam(value="prices") List<Double> prices)
     {
-        OrderDTO order = new OrderDTO(products, quantities, price, cid);
+        OrderDTO order = new OrderDTO(products, quantities, prices, cid);
         this.orderService.createOrder(order);
         return "order";
     }

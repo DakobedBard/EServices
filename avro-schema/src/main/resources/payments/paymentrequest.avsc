@@ -1,0 +1,10 @@
+{"namespace": "org.mddarr.payments.dto",
+ "type": "record",
+ "name": "PaymentRequest",
+ "fields": [
+     {"name": "id", "type": "string"},
+     {"name": "customerId", "type": "string"},
+     {"name": "price", "type": "double"}
+ ]
+}
+

@@ -5,8 +5,6 @@ spring.cloud.stream.function.definition: process;purchasesprocess;ordersprocess;
 
 spring.cloud.stream.bindings.ordersprocess-in-0:
   destination: orders
-spring.cloud.stream.bindings.ordersprocess-in-1:
-  destination: product-feed
 spring.cloud.stream.bindings.ordersprocess-out-0:
   destination: order-validations
 
@@ -57,20 +55,7 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    database: POSTGRESQL
-    show-sql: true
-    hibernate:
-      ddl-auto: create
-  datasource:
-    platform: postgres
-    url: jdbc:postgresql://localhost:5433/productdb
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+
 
 spring.cloud.stream.kafka.streams.binder.configuration:
   default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde

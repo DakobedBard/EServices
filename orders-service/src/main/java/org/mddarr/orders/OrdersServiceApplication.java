@@ -26,10 +26,5 @@ public class OrdersServiceApplication {
     public void postInit() {
         logger.info("Application ShowcaseApp started!");
     }
-//
-//    @Bean
-//    NewTopic moviesTopic() {
-//        return new NewTopic(topicName, partitions, replicationFactor);
-//    }
 
 }
