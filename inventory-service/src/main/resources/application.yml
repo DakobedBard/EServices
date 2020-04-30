@@ -10,7 +10,6 @@ spring.cloud.stream.bindings.ordersprocess-in-1:
 spring.cloud.stream.bindings.ordersprocess-out-0:
   destination: order-validations
 
-
 spring.cloud.stream.bindings.purchasesprocess-in-0:
   destination: purchase-events
 spring.cloud.stream.bindings.purchasesprocess-in-1:
