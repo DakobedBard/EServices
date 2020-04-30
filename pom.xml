@@ -21,6 +21,7 @@
         <module>inventory-service</module>
         <module>customers-service</module>
         <module>orders-service</module>
+        <module>payments-service</module>
     </modules>
     <dependencies>
         <dependency>

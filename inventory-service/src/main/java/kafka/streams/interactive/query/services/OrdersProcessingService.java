@@ -31,11 +31,7 @@ public class OrdersProcessingService {
             Predicate<String, Product> isFrench = (k, v) -> v.getBrand().equals("Addidas");
             Predicate<String, Product> isSpanish = (k, v) -> v.getBrand().equals("Under Armour");
 
-
             return (orderStream) ->{
-
-
-
                 orderStream.foreach(new ForeachAction() {
                     @Override
                     public void apply(Object key, Object value) {
@@ -45,7 +41,6 @@ public class OrdersProcessingService {
                 });
                 return orderStream;
             };
-
         }
     }
 }

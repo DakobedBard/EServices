@@ -1,2 +1,10 @@
 server:
-  port: 8020
+  port: 8021
+spring.application.name: kafka-streams-payments-service
+
+spring.cloud.stream.bindings:
+  validateorders-in-0:
+    destination: orders
+  validateorders-out-0:
+    destination: order-validations
+
