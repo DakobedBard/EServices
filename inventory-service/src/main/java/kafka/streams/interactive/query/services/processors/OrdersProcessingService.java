@@ -24,7 +24,7 @@ import java.util.function.Function;
 public class OrdersProcessingService {
     public static class OrdersProcessor {
         @Bean
-        public BiConsumer<KStream<String, Order>, KTable<String, Product>> ordersprocess() {
+        public BiFunction<KStream<String, Order>, KTable<String, Product>, KStream<String, Order>> ordersprocess() {
 
             return (orderStream, productTable) ->{
                 orderStream.foreach(new ForeachAction() {
@@ -41,7 +41,7 @@ public class OrdersProcessingService {
                         System.out.println(key + ": " + value);
                     }
                 });;
-
+                return orderStream;
 
             };
         }

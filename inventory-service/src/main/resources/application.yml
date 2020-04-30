@@ -5,6 +5,8 @@ spring.cloud.stream.function.definition: process;purchasesprocess;ordersprocess;
 
 spring.cloud.stream.bindings.ordersprocess-in-0:
   destination: orders
+spring.cloud.stream.bindings.ordersprocess-in-1:
+  destination: product-feed
 spring.cloud.stream.bindings.ordersprocess-out-0:
   destination: order-validations
 

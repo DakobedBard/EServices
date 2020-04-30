@@ -18,7 +18,7 @@ public class AvroProductProducer {
     public void sendProduct(ProductEntity product) {
         logger.info("Send product  {}", product);
         Product prod = new Product(product.getId(), product.getBrand(), product.getName(), product.getPrice(), product.getQuantity());
-        kafkaTemplateEvent1.send("products", prod);
+        kafkaTemplateEvent1.send("product-feed",product.getId(), prod);
     }
 
 
