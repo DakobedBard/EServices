@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 //
@@ -32,18 +34,30 @@ public class OrderService {
     @Autowired
     private OrderServicePublish orderServicePublish;
 //
-    public Order createOrder(OrderDTO orderDTO){
-        UUID uuid = UUID.randomUUID();
+    public OrderEntity createOrder(OrderDTO orderDTO){
+        UUID uuid; // = UUID.randomUUID();
+        List<Order> orders = new ArrayList<Order>();
+        List<String> order_ids = new ArrayList<>();
+        Order order;
 
-        Order order =new Order(uuid.toString(), orderDTO.getCustomerID(), OrderState.PENDING, orderDTO.getProducts(), orderDTO.getQuantities(), orderDTO.getPrice());
-//        order.setState(OrderState.PENDING);
-//        order=orderRepository.save(order);
-//        orderServicePublish.sendOrder(order);
-        OrderEntity orderEntity = new OrderEntity(uuid.toString(),orderDTO.getProducts(),orderDTO.getQuantities(), orderDTO.getPrice(), orderDTO.getCustomerID(), OrderState.PENDING.toString());
+        Double total = 0.0;
+        for(int i = 0; i < orderDTO.getProducts().size(); i++){
+            uuid = UUID.randomUUID();
+            order_ids.add(uuid.toString());
+            order = new Order(uuid.toString(),orderDTO.getCustomerID(), OrderState.PENDING,
+                    orderDTO.getProducts().get(i), orderDTO.getQuantities().get(i), orderDTO.getPrices().get(i));
+            producer.sendOrder(order);
+            log.info("Order with id "+order.getId()+" sent to orders topic");
+            total += orderDTO.getPrices().get(i);
+        }
+
+        uuid = UUID.randomUUID();
+        OrderEntity orderEntity = new OrderEntity(uuid.toString(),orderDTO.getProducts(),orderDTO.getQuantities(),
+                orderDTO.getPrices(),order_ids,total, orderDTO.getCustomerID(), OrderState.PENDING.toString());
         orderRepositoryy.save(orderEntity);
-        producer.sendOrder(order);
-        log.info("Order with id "+order.getId()+" sent to orders topic");
-        return order;
+
+
+        return orderEntity;
     }
 
     public void deleteOrder(String id){
