@@ -1,12 +1,9 @@
-package org.mddarr.payments.service;
+package com.example.accessingmongodbdatarest.services;
 
 import org.apache.kafka.streams.kstream.ForeachAction;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Predicate;
 import org.mddarr.orders.event.dto.Order;
-import org.mddarr.products.Product;
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.stereotype.Service;
 
 import java.util.function.Function;
@@ -22,7 +19,7 @@ public class PaymentsValidationService {
                 orderStream.foreach(new ForeachAction() {
                     @Override
                     public void apply(Object key, Object value) {
-                        System.out.print("THe key value is .. ");
+                        System.out.print("The validated order value is  .. ");
                         System.out.println(key + ": " + value);
                     }
                 });

@@ -20,7 +20,7 @@ import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
 //import kafka.streams.interactive.query.avro.PlayEvent;
-import kafka.streams.interactive.query.services.InventoryService;
+
 import org.mddarr.products.Product;
 import org.mddarr.products.PurchaseEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -61,7 +61,7 @@ public class PurchaseEventProducer {
 		DefaultKafkaProducerFactory<String, Product> pf1 = new DefaultKafkaProducerFactory<>(props);
 
 		KafkaTemplate<String, Product> template1 = new KafkaTemplate<>(pf1, true);
-		template1.setDefaultTopic(InventoryService.PRODUCT_FEED);
+		template1.setDefaultTopic("product-feed");
 
 		Statement stmt = null;
 		Connection c = null;
@@ -132,13 +132,13 @@ public class PurchaseEventProducer {
 
 		DefaultKafkaProducerFactory<String, Product> pf1 = new DefaultKafkaProducerFactory<>(props1);
 		KafkaTemplate<String, Product> template1 = new KafkaTemplate<>(pf1, true);
-		template1.setDefaultTopic(InventoryService.PRODUCT_FEED);
+		template1.setDefaultTopic("product-feed");
 
 		List<Product> products = getProductsFromDB();
 
         products.forEach(product -> {
 			System.out.println("Writing product information for '" + product.getName() + "' to input topic " +
-					InventoryService.PRODUCT_FEED);
+					"product-feed");
 			template1.sendDefault(product.getId(), product);
 		});
 
