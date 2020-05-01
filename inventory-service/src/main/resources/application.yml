@@ -11,7 +11,7 @@ spring.cloud.stream.bindings.ordersprocess-out-0:
   destination: order-validations
 spring.cloud.stream.kafka.streams.bindings.ordersprocess-out-0:
   producer:
-    keySerde: org.apache.kafka.common.serialization.StringSerializer
+    keySerde: org.apache.kafka.common.serialization.Serdes$StringSerde
 #spring.cloud.stream.bindings.purchasesprocess-in-0:
 #  destination: purchase-events
 #spring.cloud.stream.bindings.purchasesprocess-in-1:

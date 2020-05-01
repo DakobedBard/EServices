@@ -28,7 +28,7 @@ public class OrdersProcessingService {
         @Bean
         public BiFunction<KStream<String, Order>, KTable<String, Product>, KStream<String, ValidatedOrder>> ordersprocess() {
 
-            return (orderStream, productTable) ->{
+            return (orderStream, productTable) -> {
 
                 final Map<String, String> serdeConfig = Collections.singletonMap(
                         AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
@@ -45,17 +45,21 @@ public class OrdersProcessingService {
                 final SpecificAvroSerde<ValidatedOrder> validatedOrderSpecificAvroSerde = new SpecificAvroSerde<>();
                 validatedOrderSpecificAvroSerde.configure(serdeConfig, false);
 
-
                 // join the orders with product
                 final KStream<String, Order> ordersByProductId =
                         orderStream.map((key, value) -> KeyValue.pair(value.getProductID(), value));
 
-            final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId
-                    .leftJoin(productTable, (order, product) -> {
-                        System.out.println("debugging this shit");
-                        System.out.println("The product ID is " + product.getId() + " and the quantity is " + order.getQuantity() + "and the stock is " + product.getStock());
-                        return  new ValidatedOrder(order.getId(), "b", OrderState.OUT_OF_STOCK, 5l, 5.3);
-                        },Joined.with(Serdes.String(), orderSerde, valueProductSerde));
+                final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId
+                        .leftJoin(productTable, (order, product) -> {
+                            System.out.println("debugging this shit");
+                            System.out.println("The product ID is " + product.getId() + " and the quantity is " + order.getQuantity() + "and the stock is " + product.getStock());
+                            return new ValidatedOrder(order.getId(), "b", OrderState.OUT_OF_STOCK, 5l, 5.3);
+                        }, Joined.with(Serdes.String(), orderSerde, valueProductSerde));
+                return joinedProducts;
+            };
+        }
+    }
+}
 
 //                final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId.
 //                        join(productTable,(order, product) -> {
@@ -74,7 +78,83 @@ public class OrdersProcessingService {
                 //                joinedProducts.foreach(new ForeachAction() {
 //                    @Override
 //                    public void apply(Object key, Object value) {
-//                        System.out.print("THe key value IN THE JOINED VALUE K STREAM of othe product is .. ");
+//                        System.out.print("THe key value IN THE JOINED VALUE K STREAM of othe pr//                return joinedProducts;
+//            };
+//        }
+//    }
+//
+////    {"name": "id", "type": "string"},
+////    {"name": "productID", "type": "string"},
+////    {"name": "state", "type": "OrderState"},
+////    {"name":"quantity", "type": "long"},
+////    {"name": "price", "type": "double"}
+//
+//
+//    public class OrdersProductJoiner implements ValueJoiner<Order, Product, OrdersProduct> {
+//        public OrdersProduct apply(Order order, Product product) {
+//            return new OrdersProduct(order.getId(), order.getProductID(), order.getQuantity(), product.getStock(), order.getPrice());
+//        }
+//    }
+//    public class OrdersProduct{
+//        String orderID;
+//        String productID;
+//        Long quantity;
+//        Double price;
+//        OrderState state;
+//
+//        public OrdersProduct(String orderID, String productID, Long quantity, Long stock, Double price) {
+//            this.orderID = orderID;
+//            this.productID = productID;
+//            this.quantity = quantity;
+//            this.price = price;
+//            this.state = quantity > stock ? OrderState.OUT_OF_STOCK : OrderState.STOCKED;
+//        }
+//
+//        public Double getPrice() {
+//            return price;
+//        }
+//
+//        public void setPrice(Double price) {
+//            this.price = price;
+//        }
+//
+//        public OrderState getState() {
+//            return state;
+//        }
+//
+//        public void setState(OrderState state) {
+//            this.state = state;
+//        }
+//
+//        public String getOrderID() { return orderID;}
+//        public void setOrderID(String orderID) { this.orderID = orderID;}
+//        public String getProductID() { return productID;}
+//        public void setProductID(String productID) {this.productID = productID; }
+//        public Long getQuantity() {return quantity;}
+//        public void setQuantity(Long quantity) { this.quantity = quantity;}
+//    }
+//}
+//
+//
+////    final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId.
+////            leftJoin(productTable,(order, product) -> new
+////                    ValidatedOrder("a", "b",
+////                    order.getQuantity() < product.getStock() ? OrderState.STOCKED: OrderState.OUT_OF_STOCK,
+////                    5l, 5.3 ));
+////                orderStream.foreach(new ForeachAction() {
+////                    @Override
+////                    public void apply(Object key, Object value) {
+////                        System.out.print("THe key value of the orders stream is .. ");
+////                        System.out.println(key + ": " + value);
+////                    }
+////                });
+////                productTable.toStream().foreach(new ForeachAction() {
+////                    @Override
+////                    public void apply(Object key, Object value) {
+////                        System.out.print("THe key value of othe product is .. ");
+////                        System.out.println(key + ": " + value);
+////                    }
+
 //                        System.out.println(key + ": " + value);
 //                    }
 //
@@ -90,80 +170,80 @@ public class OrdersProcessingService {
 //                        System.out.println(key + ": " + value);
 //                    }
 //                });
-                return joinedProducts;
-            };
-        }
-    }
-
-//    {"name": "id", "type": "string"},
-//    {"name": "productID", "type": "string"},
-//    {"name": "state", "type": "OrderState"},
-//    {"name":"quantity", "type": "long"},
-//    {"name": "price", "type": "double"}
-
-
-    public class OrdersProductJoiner implements ValueJoiner<Order, Product, OrdersProduct> {
-        public OrdersProduct apply(Order order, Product product) {
-            return new OrdersProduct(order.getId(), order.getProductID(), order.getQuantity(), product.getStock(), order.getPrice());
-        }
-    }
-    public class OrdersProduct{
-        String orderID;
-        String productID;
-        Long quantity;
-        Double price;
-        OrderState state;
-
-        public OrdersProduct(String orderID, String productID, Long quantity, Long stock, Double price) {
-            this.orderID = orderID;
-            this.productID = productID;
-            this.quantity = quantity;
-            this.price = price;
-            this.state = quantity > stock ? OrderState.OUT_OF_STOCK : OrderState.STOCKED;
-        }
-
-        public Double getPrice() {
-            return price;
-        }
-
-        public void setPrice(Double price) {
-            this.price = price;
-        }
-
-        public OrderState getState() {
-            return state;
-        }
-
-        public void setState(OrderState state) {
-            this.state = state;
-        }
-
-        public String getOrderID() { return orderID;}
-        public void setOrderID(String orderID) { this.orderID = orderID;}
-        public String getProductID() { return productID;}
-        public void setProductID(String productID) {this.productID = productID; }
-        public Long getQuantity() {return quantity;}
-        public void setQuantity(Long quantity) { this.quantity = quantity;}
-    }
-}
-
-
-//    final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId.
-//            leftJoin(productTable,(order, product) -> new
-//                    ValidatedOrder("a", "b",
-//                    order.getQuantity() < product.getStock() ? OrderState.STOCKED: OrderState.OUT_OF_STOCK,
-//                    5l, 5.3 ));
-//                orderStream.foreach(new ForeachAction() {
-//                    @Override
-//                    public void apply(Object key, Object value) {
-//                        System.out.print("THe key value of the orders stream is .. ");
-//                        System.out.println(key + ": " + value);
-//                    }
-//                });
-//                productTable.toStream().foreach(new ForeachAction() {
-//                    @Override
-//                    public void apply(Object key, Object value) {
-//                        System.out.print("THe key value of othe product is .. ");
-//                        System.out.println(key + ": " + value);
-//                    }
+//                return joinedProducts;
+//            };
+//        }
+//    }
+//
+////    {"name": "id", "type": "string"},
+////    {"name": "productID", "type": "string"},
+////    {"name": "state", "type": "OrderState"},
+////    {"name":"quantity", "type": "long"},
+////    {"name": "price", "type": "double"}
+//
+//
+//    public class OrdersProductJoiner implements ValueJoiner<Order, Product, OrdersProduct> {
+//        public OrdersProduct apply(Order order, Product product) {
+//            return new OrdersProduct(order.getId(), order.getProductID(), order.getQuantity(), product.getStock(), order.getPrice());
+//        }
+//    }
+//    public class OrdersProduct{
+//        String orderID;
+//        String productID;
+//        Long quantity;
+//        Double price;
+//        OrderState state;
+//
+//        public OrdersProduct(String orderID, String productID, Long quantity, Long stock, Double price) {
+//            this.orderID = orderID;
+//            this.productID = productID;
+//            this.quantity = quantity;
+//            this.price = price;
+//            this.state = quantity > stock ? OrderState.OUT_OF_STOCK : OrderState.STOCKED;
+//        }
+//
+//        public Double getPrice() {
+//            return price;
+//        }
+//
+//        public void setPrice(Double price) {
+//            this.price = price;
+//        }
+//
+//        public OrderState getState() {
+//            return state;
+//        }
+//
+//        public void setState(OrderState state) {
+//            this.state = state;
+//        }
+//
+//        public String getOrderID() { return orderID;}
+//        public void setOrderID(String orderID) { this.orderID = orderID;}
+//        public String getProductID() { return productID;}
+//        public void setProductID(String productID) {this.productID = productID; }
+//        public Long getQuantity() {return quantity;}
+//        public void setQuantity(Long quantity) { this.quantity = quantity;}
+//    }
+//}
+//
+//
+////    final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId.
+////            leftJoin(productTable,(order, product) -> new
+////                    ValidatedOrder("a", "b",
+////                    order.getQuantity() < product.getStock() ? OrderState.STOCKED: OrderState.OUT_OF_STOCK,
+////                    5l, 5.3 ));
+////                orderStream.foreach(new ForeachAction() {
+////                    @Override
+////                    public void apply(Object key, Object value) {
+////                        System.out.print("THe key value of the orders stream is .. ");
+////                        System.out.println(key + ": " + value);
+////                    }
+////                });
+////                productTable.toStream().foreach(new ForeachAction() {
+////                    @Override
+////                    public void apply(Object key, Object value) {
+////                        System.out.print("THe key value of othe product is .. ");
+////                        System.out.println(key + ": " + value);
+////                    }
 //                });
