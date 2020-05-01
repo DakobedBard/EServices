@@ -24,6 +24,6 @@ public class OrderAvroProducer implements OrderServicePublish {
     @Override
     public void sendOrder(Order order) {
         logger.info("Send order  {}", order);
-        kafkaTemplateOrder.send("orders", order);
+        kafkaTemplateOrder.send("orders", order.getId(), order);
     }
 }

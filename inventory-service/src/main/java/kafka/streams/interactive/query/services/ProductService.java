@@ -24,7 +24,6 @@ public class ProductService {
     public void addProduct(ProductDTO productDTO){
         UUID uuid =  UUID.randomUUID();
         ProductEntity product = new ProductEntity(uuid.toString(),productDTO.getName(),productDTO.getBrand(),productDTO.getPrice(), productDTO.getQuantity());
-//        ProductEntity product = new ProductEntity(uuid.toString(),productDTO.getName(),productDTO.getBrand(),productDTO.getPrice());
         postgresRepository.save(product);
         avroProductProducer.sendProduct(product);
     }

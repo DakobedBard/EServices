@@ -9,37 +9,40 @@ spring.cloud.stream.bindings.ordersprocess-in-1:
   destination: product-feed
 spring.cloud.stream.bindings.ordersprocess-out-0:
   destination: order-validations
-
-
-spring.cloud.stream.bindings.purchasesprocess-in-0:
-  destination: purchase-events
-spring.cloud.stream.bindings.purchasesprocess-in-1:
-  destination: product-feed
-spring.cloud.stream.bindings.purchasesprocess-out-0:
-  destination: purchase-counts
-spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-0:
-  consumer:
-    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-1:
-  consumer:
-    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-    materializedAs: all-purchases
-spring.cloud.stream.kafka.streams.bindings.purchasesprocess-out-0:
+spring.cloud.stream.kafka.streams.bindings.ordersprocess-out-0:
   producer:
-    keySerde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    valueSerde: org.apache.kafka.common.serialization.Serdes$LongSerde
+    keySerde: org.apache.kafka.common.serialization.StringSerializer
+#spring.cloud.stream.bindings.purchasesprocess-in-0:
+#  destination: purchase-events
+#spring.cloud.stream.bindings.purchasesprocess-in-1:
+#  destination: product-feed
+#spring.cloud.stream.bindings.purchasesprocess-out-0:
+#  destination: purchase-counts
+#spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-0:
+#  consumer:
+#    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#spring.cloud.stream.kafka.streams.bindings.purchasesprocess-in-1:
+#  consumer:
+#    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#    materializedAs: all-purchases
+#spring.cloud.stream.kafka.streams.bindings.purchasesprocess-out-0:
+#  producer:
+#    keySerde: org.apache.kafka.common.serialization.Serdes$StringSerde
+#    valueSerde: org.apache.kafka.common.serialization.Serdes$LongSerde
 
-spring.cloud.stream.bindings.process-in-0:
-  destination: purchase-events
-spring.cloud.stream.bindings.process-in-1:
-  destination: product-feed
-spring.cloud.stream.kafka.streams.bindings.process-in-0:
-  consumer:
-    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-spring.cloud.stream.kafka.streams.bindings.process-in-1:
-  consumer:
-    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-    materializedAs: all-products
+
+
+#spring.cloud.stream.bindings.process-in-0:
+#  destination: purchase-events
+#spring.cloud.stream.bindings.process-in-1:
+#  destination: product-feed
+#spring.cloud.stream.kafka.streams.bindings.process-in-0:
+#  consumer:
+#    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#spring.cloud.stream.kafka.streams.bindings.process-in-1:
+#  consumer:
+#    valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#    materializedAs: all-products
 
 
 spring.cloud.stream.kafka.streams.binder:
