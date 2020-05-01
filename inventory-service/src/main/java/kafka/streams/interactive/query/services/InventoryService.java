@@ -32,90 +32,90 @@ public class InventoryService {
     static final String TOP_FIVE_PRODUCTS_BY_BRAND_STORE = "top-five-products-by-brand";
 
 
-    @Bean
-    public BiConsumer<KStream<String, PurchaseEvent>, KTable<String, Product>> process() {
-
-        return (purchaseStream, productTable) -> {
-            // create and configure the SpecificAvroSerdes required in this example
-            final Map<String, String> serdeConfig = Collections.singletonMap(
-                    AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
-
-            final SpecificAvroSerde<PurchaseEvent> purchaseEventSerde = new SpecificAvroSerde<>();
-            purchaseEventSerde.configure(serdeConfig, false);
-
-            final SpecificAvroSerde<Product> keyProductSerde = new SpecificAvroSerde<>();
-            keyProductSerde.configure(serdeConfig, true);
-
-            final SpecificAvroSerde<Product> valueProductSerde = new SpecificAvroSerde<>();
-            valueProductSerde.configure(serdeConfig, false);
-
-            final SpecificAvroSerde<PurchaseCount> productPurchaseCountSerde = new SpecificAvroSerde<>();
-            productPurchaseCountSerde.configure(serdeConfig, false);
-
-            final KStream<String, PurchaseEvent> purchasesByProductId =
-                    purchaseStream.map((key, value) -> KeyValue.pair(value.getProductId(), value));
-
-            // join the purchases with product as we will use it later for charting
-            final KStream<String, Product> productPurchases = purchasesByProductId
-                    .leftJoin(productTable, (value1, product) -> product,
-                    Joined.with(Serdes.String(), purchaseEventSerde, valueProductSerde));
-
-            // create a state store to track product purchase counts
-            final KTable<Product, Long> productPurchaseCounts = productPurchases.groupBy((productId, product) -> product,
-                    Grouped.with(keyProductSerde, valueProductSerde))
-                    .count(Materialized.<Product, Long, KeyValueStore<Bytes, byte[]>>as(PRODUCT_PLAY_COUNT_STORE)
-                            .withKeySerde(valueProductSerde)
-                            .withValueSerde(Serdes.Long()));
-
-            final TopFiveSerde topFiveSerde = new TopFiveSerde();
-
-            // Compute the top five charts for each brand. The results of this computation will continuously update the state
-            // store "top-five-products-by-genre", and this state store can then be queried interactively via a REST API (cf.
-            // MusicPlaysRestService) for the latest charts per genre.
-            productPurchaseCounts.groupBy((product, purchase_count) ->
-								KeyValue.pair(product.getBrand().toLowerCase(),
-										new PurchaseCount(product.getId(), purchase_count)),
-						Grouped.with(Serdes.String(), productPurchaseCountSerde))
-						// aggregate into a TopFiveSongs instance that will keep track
-						// of the current top five for each genre. The data will be available in the
-						// top-five-songs-genre store
-						.aggregate(TopFiveProducts::new,
-								(aggKey, value, aggregate) -> {
-									aggregate.add(value);
-									return aggregate;
-								},
-								(aggKey, value, aggregate) -> {
-									aggregate.remove(value);
-									return aggregate;
-								},
-								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_PRODUCTS_BY_BRAND_STORE)
-										.withKeySerde(Serdes.String())
-										.withValueSerde(topFiveSerde)
-                        );
+//    @Bean
+//    public BiConsumer<KStream<String, PurchaseEvent>, KTable<String, Product>> process() {
 //
-//				// Compute the top five chart. The results of this computation will continuously update the state
-//				// store "top-five-songs", and this state store can then be queried interactively via a REST API (cf.
-//				// MusicPlaysRestService) for the latest charts per genre.
-            productPurchaseCounts.groupBy((product, purchase_count) ->
-								KeyValue.pair(TOP_FIVE_KEY,
-										new PurchaseCount(product.getId(), purchase_count)),
-						Grouped.with(Serdes.String(), productPurchaseCountSerde))
-						.aggregate(TopFiveProducts::new,
-								(aggKey, value, aggregate) -> {
-									aggregate.add(value);
-									return aggregate;
-								},
-								(aggKey, value, aggregate) -> {
-									aggregate.remove(value);
-									return aggregate;
-								},
-								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_PRODUCTS_STORE)
-										.withKeySerde(Serdes.String())
-										.withValueSerde(topFiveSerde)
-						);
-        };
-
-    }
+//        return (purchaseStream, productTable) -> {
+//            // create and configure the SpecificAvroSerdes required in this example
+//            final Map<String, String> serdeConfig = Collections.singletonMap(
+//                    AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
+//
+//            final SpecificAvroSerde<PurchaseEvent> purchaseEventSerde = new SpecificAvroSerde<>();
+//            purchaseEventSerde.configure(serdeConfig, false);
+//
+//            final SpecificAvroSerde<Product> keyProductSerde = new SpecificAvroSerde<>();
+//            keyProductSerde.configure(serdeConfig, true);
+//
+//            final SpecificAvroSerde<Product> valueProductSerde = new SpecificAvroSerde<>();
+//            valueProductSerde.configure(serdeConfig, false);
+//
+//            final SpecificAvroSerde<PurchaseCount> productPurchaseCountSerde = new SpecificAvroSerde<>();
+//            productPurchaseCountSerde.configure(serdeConfig, false);
+//
+//            final KStream<String, PurchaseEvent> purchasesByProductId =
+//                    purchaseStream.map((key, value) -> KeyValue.pair(value.getProductId(), value));
+//
+//            // join the purchases with product as we will use it later for charting
+//            final KStream<String, Product> productPurchases = purchasesByProductId
+//                    .leftJoin(productTable, (value1, product) -> product,
+//                    Joined.with(Serdes.String(), purchaseEventSerde, valueProductSerde));
+//
+//            // create a state store to track product purchase counts
+//            final KTable<Product, Long> productPurchaseCounts = productPurchases.groupBy((productId, product) -> product,
+//                    Grouped.with(keyProductSerde, valueProductSerde))
+//                    .count(Materialized.<Product, Long, KeyValueStore<Bytes, byte[]>>as(PRODUCT_PLAY_COUNT_STORE)
+//                            .withKeySerde(valueProductSerde)
+//                            .withValueSerde(Serdes.Long()));
+//
+//            final TopFiveSerde topFiveSerde = new TopFiveSerde();
+//
+//            // Compute the top five charts for each brand. The results of this computation will continuously update the state
+//            // store "top-five-products-by-genre", and this state store can then be queried interactively via a REST API (cf.
+//            // MusicPlaysRestService) for the latest charts per genre.
+//            productPurchaseCounts.groupBy((product, purchase_count) ->
+//								KeyValue.pair(product.getBrand().toLowerCase(),
+//										new PurchaseCount(product.getId(), purchase_count)),
+//						Grouped.with(Serdes.String(), productPurchaseCountSerde))
+//						// aggregate into a TopFiveSongs instance that will keep track
+//						// of the current top five for each genre. The data will be available in the
+//						// top-five-songs-genre store
+//						.aggregate(TopFiveProducts::new,
+//								(aggKey, value, aggregate) -> {
+//									aggregate.add(value);
+//									return aggregate;
+//								},
+//								(aggKey, value, aggregate) -> {
+//									aggregate.remove(value);
+//									return aggregate;
+//								},
+//								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_PRODUCTS_BY_BRAND_STORE)
+//										.withKeySerde(Serdes.String())
+//										.withValueSerde(topFiveSerde)
+//                        );
+////
+////				// Compute the top five chart. The results of this computation will continuously update the state
+////				// store "top-five-songs", and this state store can then be queried interactively via a REST API (cf.
+////				// MusicPlaysRestService) for the latest charts per genre.
+//            productPurchaseCounts.groupBy((product, purchase_count) ->
+//								KeyValue.pair(TOP_FIVE_KEY,
+//										new PurchaseCount(product.getId(), purchase_count)),
+//						Grouped.with(Serdes.String(), productPurchaseCountSerde))
+//						.aggregate(TopFiveProducts::new,
+//								(aggKey, value, aggregate) -> {
+//									aggregate.add(value);
+//									return aggregate;
+//								},
+//								(aggKey, value, aggregate) -> {
+//									aggregate.remove(value);
+//									return aggregate;
+//								},
+//								Materialized.<String, TopFiveProducts, KeyValueStore<Bytes, byte[]>>as(TOP_FIVE_PRODUCTS_STORE)
+//										.withKeySerde(Serdes.String())
+//										.withValueSerde(topFiveSerde)
+//						);
+//        };
+//
+//    }
 
 
     public static class TopFiveProducts implements Iterable<PurchaseCount> {
