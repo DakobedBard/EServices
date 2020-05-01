@@ -1,6 +1,6 @@
 package kafka.streams.interactive.query.services.processors;
 
-
+import org.apache.kafka.common.serialization.Serdes;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -26,35 +26,57 @@ import java.util.function.Function;
 public class OrdersProcessingService {
     public class OrdersProcessor {
         @Bean
-        public BiFunction<KStream<String, Order>, KTable<String, Product>, KStream<String, Order>> ordersprocess() {
+        public BiFunction<KStream<String, Order>, KTable<String, Product>, KStream<String, ValidatedOrder>> ordersprocess() {
 
             return (orderStream, productTable) ->{
 
-//                final Map<String, String> serdeConfig = Collections.singletonMap(
-//                        AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
+                final Map<String, String> serdeConfig = Collections.singletonMap(
+                        AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
 //
-//                final SpecificAvroSerde<Order> orderSerde = new SpecificAvroSerde<>();
-//                orderSerde.configure(serdeConfig, false);
-//
-//                final Serdes.StringSerde keyProductSerde = new Serdes.StringSerde<>();
-//                keyProductSerde.configure(serdeConfig, true);
-//
-//                final SpecificAvroSerde<Product> valueProductSerde = new SpecificAvroSerde<>();
-//                valueProductSerde.configure(serdeConfig, false);
+                final SpecificAvroSerde<Order> orderSerde = new SpecificAvroSerde<>();
+                orderSerde.configure(serdeConfig, false);
+
+                final SpecificAvroSerde<Product> keyProductSerde = new SpecificAvroSerde();
+                keyProductSerde.configure(serdeConfig, true);
+
+                final SpecificAvroSerde<Product> valueProductSerde = new SpecificAvroSerde<>();
+                valueProductSerde.configure(serdeConfig, false);
+
+                final SpecificAvroSerde<ValidatedOrder> validatedOrderSpecificAvroSerde = new SpecificAvroSerde<>();
+                validatedOrderSpecificAvroSerde.configure(serdeConfig, false);
 
 
                 // join the orders with product
-//                final KStream<String, Order> ordersByProductId =
-//                        orderStream.map((key, value) -> KeyValue.pair(value.getProductID(), value));
-//
-//
-////                final KStream<String, String>
-//
+                final KStream<String, Order> ordersByProductId =
+                        orderStream.map((key, value) -> KeyValue.pair(value.getProductID(), value));
+
+            final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId
+                    .leftJoin(productTable, (order, product) -> {
+                        System.out.println("debugging this shit");
+                        System.out.println("The product ID is " + product.getId() + " and the quantity is " + order.getQuantity() + "and the stock is " + product.getStock());
+                        return  new ValidatedOrder(order.getId(), "b", OrderState.OUT_OF_STOCK, 5l, 5.3);
+                        },Joined.with(Serdes.String(), orderSerde, valueProductSerde));
+
 //                final KStream<String, ValidatedOrder> joinedProducts = ordersByProductId.
-//                        join(productTable,(order, product) -> new
-//                                ValidatedOrder("a", "b",
+//                        join(productTable,(order, product) -> {
+//                            System.out.println("I can print from inside the lambda..");
+//                            return new ValidatedOrder(order.getId(), "b",
 //                                OrderState.OUT_OF_STOCK,
-//                                5l, 5.3 ));
+//                                5l, 5.3 ); }, Joined.with(Serdes.String(), orderSerde, validatedOrderSpecificAvroSerde)) ;
+//                joinedProducts.foreach(new ForeachAction() {
+//                    @Override
+//                    public void apply(Object key, Object value) {
+//                        System.out.print("THe key value IN THE JOINED VALUE K STREAM of othe product is .. ");
+//                        System.out.println(key + ": " + value);
+//                    }
+//                });
+
+                //                joinedProducts.foreach(new ForeachAction() {
+//                    @Override
+//                    public void apply(Object key, Object value) {
+//                        System.out.print("THe key value IN THE JOINED VALUE K STREAM of othe product is .. ");
+//                        System.out.println(key + ": " + value);
+//                    }
 //
 //                final KStream<String, ValidatedOrder> validatedOrders = ordersByProductId.leftJoin(productTable,new OrdersProductJoiner())
 //                        .map((key,value) -> new KeyValue<>(key,
@@ -68,7 +90,7 @@ public class OrdersProcessingService {
 //                        System.out.println(key + ": " + value);
 //                    }
 //                });
-                return orderStream;
+                return joinedProducts;
             };
         }
     }
